@@ -37,14 +37,6 @@ class SettingsPage extends StatelessWidget {
                     vertical: 8,
                   ),
                   children: [
-                    GroupTitle(title: "Interface"),
-                    SettingTile(
-                      title: "Interface",
-                      subtitle: "Language, region, and appearance",
-                      leading: const Icon(Icons.palette_rounded),
-                      isFirst: true,
-                      onTap: () => context.go('/settings/interface'),
-                    ),
                     GroupTitle(title: "Services"),
                     SettingTile(
                       title: "Youtube Music",
@@ -52,15 +44,6 @@ class SettingsPage extends StatelessWidget {
                       isFirst: true,
                       isLast: true,
                       onTap: () => context.go('/settings/services/ytmusic'),
-                    ),
-                    GroupTitle(title: "Content"),
-                    SettingTile(
-                      title: "Content",
-                      subtitle: "Library, appearance, and data",
-                      leading: const Icon(Icons.tune),
-                      isFirst: true,
-                      isLast: true,
-                      onTap: () => context.go('/settings/content'),
                     ),
                     GroupTitle(title: "Storage & Privacy"),
                     SettingTile(

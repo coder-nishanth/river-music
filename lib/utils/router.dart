@@ -18,8 +18,7 @@ import 'package:River/screens/player/player_page.dart';
 import 'package:River/screens/settings/about/about_page.dart';
 
 import 'package:River/screens/settings/backup_storage/backup_storage_page.dart';
-import 'package:River/screens/settings/content/content_settings_page.dart';
-import 'package:River/screens/settings/interface/interface_settings_page.dart';
+
 import 'package:River/screens/settings/player/equalizer/equalizer_page.dart';
 import 'package:River/screens/settings/player/player_settings_page.dart';
 import 'package:River/screens/settings/privacy/privacy_page.dart';
@@ -167,14 +166,6 @@ List<StatefulShellBranch> branches = [
                   builder: (context, state) => const EqualizerPage(),
                 )
               ]),
-          GoRoute(
-            path: 'interface',
-            builder: (context, state) => const InterfaceSettingsPage(),
-          ),
-          GoRoute(
-            path: 'content',
-            builder: (context, state) => const ContentSettingsPage(),
-          ),
           GoRoute(
             path: 'services/ytmusic',
             builder: (context, state) => const YTMusicPage(),
