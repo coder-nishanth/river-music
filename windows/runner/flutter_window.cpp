@@ -113,10 +113,7 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
       flutter_controller_->engine()->ReloadSystemFonts();
       break;
     case WM_NCCALCSIZE: {
-      if (wparam == TRUE) {
-        return 0;
-      }
-      break;
+      return 0;
     }
   }
 
