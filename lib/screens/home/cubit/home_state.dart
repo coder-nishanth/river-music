@@ -20,11 +20,13 @@ final class HomeSuccess extends HomeState {
   final List sections;
   final bool loadingMore;
   final String? continuation;
+  final Map<String, dynamic>? repoOfTheDay;
   const HomeSuccess({
     required this.chips,
     required this.sections,
     required this.continuation,
     required this.loadingMore,
+    this.repoOfTheDay,
   });
 
   HomeSuccess copyWith({
@@ -32,12 +34,14 @@ final class HomeSuccess extends HomeState {
     List? sections,
     String? continuation,
     bool? loadingMore,
+    Map<String, dynamic>? repoOfTheDay,
   }) {
     return HomeSuccess(
       chips: chips ?? this.chips,
       sections: sections ?? this.sections,
       continuation: continuation ?? this.continuation,
       loadingMore: loadingMore ?? this.loadingMore,
+      repoOfTheDay: repoOfTheDay ?? this.repoOfTheDay,
     );
   }
 }
