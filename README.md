@@ -8,10 +8,6 @@
 [![Built with Flutter](https://img.shields.io/badge/built%20with-Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](#)
 
-<a href="https://rivermusic.onrender.com">
-  <img src="assets/river-music-home.png" alt="River Music Website" width="900">
-</a>
-
 ### 🌐 [Official Website](https://rivermusic.onrender.com)
 
 </div>
@@ -20,14 +16,7 @@
 
 ## ✨ Overview
 
-**River Music** brings your music together in one sleek desktop experience — stream, browse, and organize without switching apps.
-
-| 🎵 Feature | Description |
-|---|---|
-| 📺 **YouTube Music** | Search and stream directly from YouTube Music |
-| 🏆 **Billboard Charts** | Browse the latest trending charts |
-| 🎧 **Spotify Playlists** | Import and play your favorite Spotify playlists |
-| 💾 **Local Library** | Manage and play your own music collection |
+**River Music** brings your music together in one sleek desktop experience. Stream from YouTube Music, browse Billboard charts, import your Spotify playlists, and manage your local library — all without switching apps.
 
 ---
 
