@@ -1,6 +1,6 @@
 # River Music
 
-A Flutter music player for Windows.
+River Music is a feature-rich Flutter-based music player for Windows. It provides seamless music playback with support for YouTube Music integration, Billboard charts, Spotify playlists, and local library management.
 
 ## Build
 
