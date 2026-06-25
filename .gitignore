@@ -19,6 +19,9 @@ build/
 .DS_Store
 Thumbs.db
 
+# Installer output
+installers/*.exe
+
 # Generated
 *.g.dart
 *.freezed.dart
