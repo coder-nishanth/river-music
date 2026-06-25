@@ -25,7 +25,8 @@
 If you enjoy River Music, consider supporting development:
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/coder.nishanth)
-[![UPI](https://img.shields.io/badge/UPI-coder--nishanth%40airtel-00BAF2?style=for-the-badge&logo=googlepay&logoColor=white)](upi://pay?pa=coder-nishanth@airtel&cu=INR)
+
+**UPI ID:** `coder-nishanth@airtel` 📋 *(tap/select to copy)*
 
 ---
 
@@ -62,4 +63,3 @@ Prefer not to build it yourself? Grab the latest release straight from the websi
 Made with 💙 and Flutter
 
 </div>
-
