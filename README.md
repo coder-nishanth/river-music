@@ -2,6 +2,10 @@
 
 A Flutter music player for Windows.
 
+## Features
+
+- #1 Repository of the day
+
 ## Build
 
 ```bash
