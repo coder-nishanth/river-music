@@ -11,7 +11,6 @@ import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/widgets/repo_of_the_day_card.dart';
 import '../../utils/adaptive_widgets/adaptive_widgets.dart';
 
 
@@ -151,8 +150,6 @@ class _HomePageState extends State<_HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _horizontalChipsRow(state.chips),
-                        if (state.repoOfTheDay != null)
-                          RepoOfTheDayCard(repo: state.repoOfTheDay!),
                         Column(
                           children: [
                             ...state.sections.map((section) {
