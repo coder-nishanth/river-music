@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:River/screens/browse/browse_page.dart';
 import 'package:River/screens/chip/chip_page.dart';
+import 'package:River/screens/search/search_page.dart';
 import 'package:River/screens/home/home_page.dart';
 import 'package:River/screens/chart/chart_details_page.dart';
 import 'package:River/services/chart_model.dart';
@@ -103,7 +104,13 @@ List<StatefulShellBranch> branches = [
                 return ChartDetailsPage(chartUrl: args);
               },
             ),
-
+            GoRoute(
+              path: 'search',
+              builder: (context, state) {
+                final query = state.extra as String? ?? '';
+                return SearchPage(query: query);
+              },
+            ),
           ]),
     ],
   ),

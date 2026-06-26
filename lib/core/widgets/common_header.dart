@@ -1,94 +1,31 @@
-import 'dart:async';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../generated/l10n.dart';
 import '../../services/media_player.dart';
-import '../../utils/bottom_modals.dart';
 import '../../ytmusic/ytmusic.dart';
 
-typedef SearchResultsCallback = void Function(List<Map<String, dynamic>> results, bool loading);
-
 class CommonHeader extends StatefulWidget {
-  final SearchResultsCallback? onResultsChanged;
-  const CommonHeader({super.key, this.onResultsChanged});
+  const CommonHeader({super.key});
   @override
   State<CommonHeader> createState() => _CommonHeaderState();
 }
 
 class _CommonHeaderState extends State<CommonHeader> {
-  final TextEditingController _controller = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  Timer? _debounce;
-  bool _isSearching = false;
+  TextEditingController? _controller;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller.addListener(_onTextChanged);
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_onTextChanged);
-    _debounce?.cancel();
-    _controller.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  void _onTextChanged() {
-    final query = _controller.text.trim();
-    _debounce?.cancel();
-    if (query.isEmpty) {
-      setState(() => _isSearching = false);
-      widget.onResultsChanged?.call([], false);
-      return;
-    }
-    setState(() => _isSearching = true);
-    widget.onResultsChanged?.call([], true);
-    _debounce = Timer(const Duration(milliseconds: 400), () {
-      _performSearch(query);
-    });
-  }
-
-  Future<void> _performSearch(String query) async {
+  void _navigateToSearch(String query) async {
     if (query.trim().isEmpty) return;
-
     if (Hive.box('SETTINGS').get('SEARCH_HISTORY', defaultValue: true)) {
       await Hive.box('SEARCH_HISTORY').delete(query.toLowerCase());
       await Hive.box('SEARCH_HISTORY').put(query.toLowerCase(), query);
     }
-
-    try {
-      final feed = await GetIt.I<YTMusic>().search(query);
-      final sections = feed['sections'] as List? ?? [];
-      final List<Map<String, dynamic>> items = [];
-      for (final section in sections) {
-        if (section['contents'] != null) {
-          for (final item in section['contents']) {
-            items.add(Map<String, dynamic>.from(item));
-          }
-        }
-      }
-      if (mounted && _controller.text.trim() == query) {
-        widget.onResultsChanged?.call(items, false);
-      }
-    } catch (e) {
-      if (mounted) {
-        widget.onResultsChanged?.call([], false);
-      }
+    if (mounted) {
+      context.push('/search', extra: query.trim());
     }
-  }
-
-  void _clearSearch() {
-    _controller.clear();
-    setState(() => _isSearching = false);
-    widget.onResultsChanged?.call([], false);
   }
 
   @override
@@ -96,117 +33,140 @@ class _CommonHeaderState extends State<CommonHeader> {
     return Container(
       height: 44,
       constraints: const BoxConstraints(maxWidth: 400),
-      decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 12),
-          Icon(
-            Icons.search,
-            color: Colors.white.withValues(alpha: 0.6),
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              style: const TextStyle(color: Colors.white, fontSize: 15),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: S.of(context).Search_River,
-                hintStyle: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  fontSize: 15,
-                ),
-              ),
+      child: TypeAheadField(
+        hideOnEmpty: true,
+        hideOnError: true,
+        suggestionsCallback: (query) async {
+          if (query.isEmpty) {
+            return Hive.box('SEARCH_HISTORY')
+                .values
+                .toList()
+                .map((el) => {
+                      'type': 'TEXT',
+                      'query': el,
+                      'isHistory': true,
+                    })
+                .toList();
+          }
+          try {
+            return await GetIt.I<YTMusic>().getSearchSuggestions(query);
+          } catch (e) {
+            return [];
+          }
+        },
+        builder: (context, controller, focusNode) {
+          _controller ??= controller;
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
             ),
-          ),
-          if (_isSearching)
-            GestureDetector(
-              onTap: _clearSearch,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Icon(
-                  CupertinoIcons.clear,
+            child: Row(
+              children: [
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.search,
                   color: Colors.white.withValues(alpha: 0.6),
-                  size: 18,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (query) {
+                      _navigateToSearch(query);
+                    },
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: S.of(context).Search_River,
+                      hintStyle: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
+          decorationBuilder: null,
+        itemBuilder: (context, value) {
+          if (value['type'] == 'TEXT') {
+            return SizedBox(
+              height: 36,
+              child: ClipRect(
+                child: GestureDetector(
+                  onTap: () => _navigateToSearch(value['query'] ?? ''),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        if (value['isHistory'] != null)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Icon(Icons.history, size: 18, color: Colors.white.withValues(alpha: 0.5)),
+                          ),
+                        Text(value['query'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 14)),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-        ],
+            );
+          }
+          return SizedBox(
+            height: 36,
+            child: ClipRect(child: _SuggestionTile(item: value)),
+          );
+        },
+        onSelected: (value) {},
       ),
     );
   }
 }
 
-class SearchResultTile extends StatelessWidget {
-  final Map<String, dynamic> item;
-  const SearchResultTile({super.key, required this.item});
+class _SuggestionTile extends StatelessWidget {
+  final Map item;
+  const _SuggestionTile({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final bool hasThumb = item['thumbnails'] != null &&
+    final hasThumb = item['thumbnails'] != null &&
         (item['thumbnails'] as List).isNotEmpty;
-    final bool isSong = item['videoId'] != null;
-
-    return InkWell(
-      onTap: () async {
-        if (isSong) {
-          await GetIt.I<MediaPlayer>().playSong(Map.from(item));
+    return GestureDetector(
+      onTap: () {
+        if (item['videoId'] != null) {
+          GetIt.I<MediaPlayer>().playSong(Map.from(item));
         } else if (item['endpoint'] != null) {
-          context.push('/browse', extra: {'endpoint': item['endpoint']});
-        }
-      },
-      onLongPress: () {
-        if (isSong) {
-          Modals.showSongBottomModal(context, item);
-        } else if (item['endpoint'] != null) {
-          Modals.showPlaylistBottomModal(context, item);
+          // navigate via context - skip for suggestions
         }
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         child: Row(
           children: [
             if (hasThumb)
               ClipRRect(
-                borderRadius: BorderRadius.circular(isSong ? 4 : 6),
+                borderRadius: BorderRadius.circular(4),
                 child: Image.network(
                   item['thumbnails'].first['url'],
-                  width: 40,
-                  height: 40,
+                  width: 28,
+                  height: 28,
                   fit: BoxFit.cover,
                 ),
               ),
-            const SizedBox(width: 10),
+            if (hasThumb) const SizedBox(width: 8),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    item['title'] ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                    ),
-                  ),
-                  if (item['subtitle'] != null)
-                    Text(
-                      item['subtitle'],
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        fontSize: 11,
-                      ),
-                    ),
-                ],
+              child: Text(
+                item['title'] ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
           ],

@@ -266,15 +266,18 @@ class SongTile extends StatelessWidget {
         (song['aspectRatio'] != null ? 50 / song['aspectRatio'] : 50)
             .toDouble();
     return AdaptiveListTile(
-        onTap: onTap ?? () async {
-          if (song['endpoint'] != null && song['videoId'] == null) {
-            context.push(
-              '/browse',
-              extra: {
-                'endpoint': song['endpoint'],
-              },
-            );
-          } else if (song['isChart'] == true) {
+         onTap: onTap ?? () async {
+           if (song['chartUrl'] != null) {
+             context.push('/chart_details',
+                 extra: song['chartUrl']);
+           } else if (song['endpoint'] != null && song['videoId'] == null) {
+             context.push(
+               '/browse',
+               extra: {
+                 'endpoint': song['endpoint'],
+               },
+             );
+           } else if (song['isChart'] == true) {
              BottomMessage.showText(context, "Searching and playing ${song['title']}...");
              final query = "${song['title']} ${song['subtitle'] ?? ''}";
              try {
