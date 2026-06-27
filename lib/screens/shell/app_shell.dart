@@ -49,21 +49,21 @@ class _AppShellState extends State<AppShell> {
               children: [
                 const Spacer(),
                 _SidebarBtn(
-                  icon: CupertinoIcons.music_house_fill,
+                  icon: Icons.home_rounded,
                   label: S.of(context).Home,
                   selected: _selectedIndex == 0,
                   onTap: () => _onNavTap(0),
                 ),
                 const SizedBox(height: 4),
                 _SidebarBtn(
-                  icon: Icons.library_music_outlined,
+                  icon: Icons.library_music_rounded,
                   label: S.of(context).Saved,
                   selected: _selectedIndex == 1,
                   onTap: () => _onNavTap(1),
                 ),
                 const SizedBox(height: 4),
                 _SidebarBtn(
-                  icon: CupertinoIcons.gear_alt_fill,
+                  icon: Icons.settings_rounded,
                   label: S.of(context).Settings,
                   selected: _selectedIndex == 2,
                   onTap: () => _onNavTap(2),
