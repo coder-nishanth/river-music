@@ -30,12 +30,14 @@ class HomeCubit extends Cubit<HomeState> {
 
       List sections = feed['sections'];
 
-      sections.insert(0, _createChartsSection(charts));
       if (trending.isNotEmpty) {
         sections.insert(0, _createTrendingSection(trending));
       }
+      if (charts.isNotEmpty) {
+        sections.insert(1, _createChartsSection(charts));
+      }
       if (recommendations.isNotEmpty) {
-        sections.insert(0, _createForYouSection(recommendations));
+        sections.insert(2, _createForYouSection(recommendations));
       }
 
       emit(HomeSuccess(
@@ -180,12 +182,14 @@ class HomeCubit extends Cubit<HomeState> {
 
       List sections = feed['sections'];
 
-      sections.insert(0, _createChartsSection(charts));
       if (trending.isNotEmpty) {
         sections.insert(0, _createTrendingSection(trending));
       }
+      if (charts.isNotEmpty) {
+        sections.insert(1, _createChartsSection(charts));
+      }
       if (recommendations.isNotEmpty) {
-        sections.insert(0, _createForYouSection(recommendations));
+        sections.insert(2, _createForYouSection(recommendations));
       }
 
       emit(HomeSuccess(
