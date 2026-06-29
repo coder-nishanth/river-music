@@ -1,6 +1,6 @@
 [Setup]
 AppName=River Music
-AppVersion=1.0.0
+AppVersion=1.1.0
 AppPublisher=coder-nishanth
 DefaultDirName={autopf}\River Music
 DefaultGroupName=River Music
@@ -8,7 +8,7 @@ UninstallDisplayIcon={app}\river-music.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=..\installers
-OutputBaseFilename=RiverMusic-Setup-1.0.0
+OutputBaseFilename=RiverMusic-Setup-1.1.0
 SetupIconFile=runner\resources\app_icon.ico
 
 [Files]
