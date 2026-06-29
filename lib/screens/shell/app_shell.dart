@@ -20,9 +20,6 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  List<Map<String, dynamic>> _searchResults = [];
-  bool _searchLoading = false;
-
   int get _selectedIndex => widget.navigationShell.currentIndex;
 
   void _onNavTap(int index) {
@@ -52,21 +49,21 @@ class _AppShellState extends State<AppShell> {
               children: [
                 const Spacer(),
                 _SidebarBtn(
-                  icon: CupertinoIcons.music_house_fill,
+                  icon: Icons.home_rounded,
                   label: S.of(context).Home,
                   selected: _selectedIndex == 0,
                   onTap: () => _onNavTap(0),
                 ),
                 const SizedBox(height: 4),
                 _SidebarBtn(
-                  icon: Icons.library_music_outlined,
+                  icon: Icons.library_music_rounded,
                   label: S.of(context).Saved,
                   selected: _selectedIndex == 1,
                   onTap: () => _onNavTap(1),
                 ),
                 const SizedBox(height: 4),
                 _SidebarBtn(
-                  icon: CupertinoIcons.gear_alt_fill,
+                  icon: Icons.settings_rounded,
                   label: S.of(context).Settings,
                   selected: _selectedIndex == 2,
                   onTap: () => _onNavTap(2),
@@ -87,14 +84,7 @@ class _AppShellState extends State<AppShell> {
                       const Spacer(),
                       SizedBox(
                         width: 400,
-                        child: CommonHeader(
-                          onResultsChanged: (results, loading) {
-                            setState(() {
-                              _searchResults = results;
-                              _searchLoading = loading;
-                            });
-                          },
-                        ),
+                        child: const CommonHeader(),
                       ),
                       const Spacer(),
                       _WBtn(
@@ -117,18 +107,6 @@ class _AppShellState extends State<AppShell> {
                   child: Stack(
                     children: [
                       widget.navigationShell,
-                      if (_searchResults.isNotEmpty || _searchLoading)
-                        Positioned(
-                          top: 8,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: SizedBox(
-                              width: 400,
-                              child: _buildSearchOverlay(),
-                            ),
-                          ),
-                        ),
                       const Align(
                         alignment: Alignment.bottomCenter,
                         child: BottomPlayer(),
@@ -144,53 +122,6 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
-  Widget _buildSearchOverlay() {
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 400),
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: _searchLoading && _searchResults.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.all(20),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white54,
-                  ),
-                ),
-              ),
-            )
-          : ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
-                  return SearchResultTile(item: _searchResults[index]);
-                },
-        ),
-      ),
-    );
-  }
 }
 
 class _SidebarBtn extends StatelessWidget {

@@ -45,20 +45,11 @@ class SettingsPage extends StatelessWidget {
                       isLast: true,
                       onTap: () => context.go('/settings/services/ytmusic'),
                     ),
-                    GroupTitle(title: "Storage & Privacy"),
-                    SettingTile(
-                      title: "Backup and storage",
-                      leading: const Icon(
-                        Icons.cloud_upload_rounded,
-                      ),
-                      isFirst: true,
-                      onTap: () => context.go(
-                        '/settings/backup_storage',
-                      ),
-                    ),
+                    GroupTitle(title: "Privacy"),
                     SettingTile(
                       title: "Privacy",
                       leading: const Icon(Icons.privacy_tip),
+                      isFirst: true,
                       isLast: true,
                       onTap: () => context.go('/settings/privacy'),
                     ),

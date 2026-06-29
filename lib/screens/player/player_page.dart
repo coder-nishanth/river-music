@@ -292,19 +292,29 @@ class _PlayerPageState extends State<PlayerPage> {
                                                                       ),
                                                                     ],
                                                                   ),
-                                                                  child: ClipRRect(
-                                                                    borderRadius:
-                                                                        BorderRadius
-                                                                            .circular(
-                                                                                12),
-                                                                    child:
-                                                                        SongThumbnail(
-                                                                      song: currentSong!
-                                                                          .extras!,
-                                                                      fit: BoxFit
-                                                                          .cover,
-                                                                      onImageReady:
-                                                                          updateBackgroundColor,
+                                                                  child: GestureDetector(
+                                                                    onTap: () {
+                                                                      final player = GetIt.I<MediaPlayer>().player;
+                                                                      if (player.playing) {
+                                                                        player.pause();
+                                                                      } else {
+                                                                        player.play();
+                                                                      }
+                                                                    },
+                                                                    child: ClipRRect(
+                                                                      borderRadius:
+                                                                          BorderRadius
+                                                                              .circular(
+                                                                                  12),
+                                                                      child:
+                                                                          SongThumbnail(
+                                                                        song: currentSong!
+                                                                            .extras!,
+                                                                        fit: BoxFit
+                                                                            .cover,
+                                                                        onImageReady:
+                                                                            updateBackgroundColor,
+                                                                      ),
                                                                     ),
                                                                   ),
                                                                 ),
@@ -407,14 +417,24 @@ class _PlayerPageState extends State<PlayerPage> {
                                                   ),
                                                 ],
                                               ),
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                child: SongThumbnail(
-                                                  song: currentSong!.extras!,
-                                                  fit: BoxFit.cover,
-                                                  onImageReady:
-                                                      updateBackgroundColor,
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  final player = GetIt.I<MediaPlayer>().player;
+                                                  if (player.playing) {
+                                                    player.pause();
+                                                  } else {
+                                                    player.play();
+                                                  }
+                                                },
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  child: SongThumbnail(
+                                                    song: currentSong!.extras!,
+                                                    fit: BoxFit.cover,
+                                                    onImageReady:
+                                                        updateBackgroundColor,
+                                                  ),
                                                 ),
                                               ),
                                             ),

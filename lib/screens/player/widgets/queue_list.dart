@@ -20,6 +20,8 @@ class QueueList extends StatelessWidget {
         final sequence = snapshot.data?.sequence ?? [];
         final currentIndex = snapshot.data?.currentIndex ?? 0;
 
+        if (sequence.isEmpty) return const SizedBox();
+
         return Container(
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor.withAlpha(70),
@@ -31,25 +33,20 @@ class QueueList extends StatelessWidget {
               filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
               child: ScrollConfiguration(
                 behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-                child: Column(
+                child: ReorderableListView(
+                  onReorder: (oldIndex, newIndex) async {
+                    if (newIndex > oldIndex) newIndex -= 1;
+                    await player.moveAudioSource(oldIndex, newIndex);
+                  },
                   children: [
-                    Expanded(
-                      child: ReorderableListView(
-                        onReorder: (oldIndex, newIndex) async {
-                          if (newIndex > oldIndex) newIndex -= 1;
-                          await player.moveAudioSource(oldIndex, newIndex);
-                        },
-                        children: [
-                          for (int i = 0; i < sequence.length; i++)
-                            QueueTile(
-                              key: Key(sequence[i].tag?.id ?? '$i'),
-                              index: i,
-                              isCurrent: i == currentIndex,
-                              source: sequence[i],
-                            ),
-                        ],
+                    for (int i = 0; i < sequence.length; i++)
+                      QueueTile(
+                        key: Key(sequence[i].tag?.id ?? '$i'),
+                        index: i,
+                        isCurrent: i == currentIndex,
+                        source: sequence[i],
                       ),
-                    ),
+                    const SizedBox(height: 16, key: ValueKey('bottom_spacer')),
                   ],
                 ),
               ),
@@ -61,7 +58,7 @@ class QueueList extends StatelessWidget {
   }
 }
 
-class QueueTile extends StatelessWidget {
+class QueueTile extends StatefulWidget {
   final int index;
   final bool isCurrent;
   final IndexedAudioSource source;
@@ -74,9 +71,49 @@ class QueueTile extends StatelessWidget {
   });
 
   @override
+  State<QueueTile> createState() => _QueueTileState();
+}
+
+class _QueueTileState extends State<QueueTile> {
+  void _showContextMenu() {
+    final mediaPlayer = GetIt.I<MediaPlayer>();
+    final MediaItem? song = widget.source.tag as MediaItem?;
+    if (song == null) return;
+    final extras = Map<String, dynamic>.from(song.extras!);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.playlist_play),
+              title: const Text('Play Next'),
+              onTap: () {
+                Navigator.pop(ctx);
+                mediaPlayer.playNext(extras);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.playlist_add),
+              title: const Text('Add to Queue'),
+              onTap: () {
+                Navigator.pop(ctx);
+                mediaPlayer.addToQueue(extras);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final player = GetIt.I<MediaPlayer>().player;
-    final MediaItem? song = source.tag as MediaItem?;
+    final MediaItem? song = widget.source.tag as MediaItem?;
 
     if (song == null) return const SizedBox();
 
@@ -84,20 +121,42 @@ class QueueTile extends StatelessWidget {
       key: Key(song.id),
       direction: DismissDirection.endToStart,
       confirmDismiss: (_) async {
-        await player.removeAudioSourceAt(index);
+        await player.removeAudioSourceAt(widget.index);
         return true;
       },
-      child: ListTile(
-        key: Key(index.toString()),
-        title: Text(song.title, maxLines: 1),
-        leading: ArtworkWidget(song: song, isCurrent: isCurrent),
-        subtitle: Text(
-          song.artist ?? song.album ?? song.extras?['subtitle'] ?? '',
-          maxLines: 1,
+      child: GestureDetector(
+        onLongPress: _showContextMenu,
+        child: Container(
+          decoration: widget.isCurrent
+              ? BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(30),
+                  border: Border(
+                    left: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 3,
+                    ),
+                  ),
+                )
+              : null,
+          child: ListTile(
+            title: Text(
+              song.title,
+              maxLines: 1,
+              style: TextStyle(
+                color: widget.isCurrent ? Theme.of(context).colorScheme.primary : null,
+                fontWeight: widget.isCurrent ? FontWeight.bold : null,
+              ),
+            ),
+            leading: ArtworkWidget(song: song, isCurrent: widget.isCurrent),
+            subtitle: Text(
+              song.artist ?? song.album ?? song.extras?['subtitle'] ?? '',
+              maxLines: 1,
+            ),
+            onTap: () {
+              player.seek(Duration.zero, index: widget.index);
+            },
+          ),
         ),
-        onTap: () {
-          player.seek(Duration.zero, index: index);
-        },
       ),
     );
   }

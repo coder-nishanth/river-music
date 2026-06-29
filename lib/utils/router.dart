@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:River/screens/browse/browse_page.dart';
 import 'package:River/screens/chip/chip_page.dart';
+import 'package:River/screens/search/search_page.dart';
 import 'package:River/screens/home/home_page.dart';
 import 'package:River/screens/chart/chart_details_page.dart';
 import 'package:River/services/chart_model.dart';
@@ -18,9 +19,6 @@ import 'package:River/screens/player/player_page.dart';
 import 'package:River/screens/settings/about/about_page.dart';
 
 import 'package:River/screens/settings/backup_storage/backup_storage_page.dart';
-
-import 'package:River/screens/settings/player/equalizer/equalizer_page.dart';
-import 'package:River/screens/settings/player/player_settings_page.dart';
 import 'package:River/screens/settings/privacy/privacy_page.dart';
 import 'package:River/screens/settings/services/yt_music/yt_music_page.dart';
 import 'package:River/screens/settings/settings_page.dart';
@@ -103,7 +101,13 @@ List<StatefulShellBranch> branches = [
                 return ChartDetailsPage(chartUrl: args);
               },
             ),
-
+            GoRoute(
+              path: 'search',
+              builder: (context, state) {
+                final query = state.extra as String? ?? '';
+                return SearchPage(query: query);
+              },
+            ),
           ]),
     ],
   ),
@@ -156,16 +160,6 @@ List<StatefulShellBranch> branches = [
         path: '/settings',
         builder: (context, state) => const SettingsPage(),
         routes: [
-
-          GoRoute(
-              path: 'player',
-              builder: (context, state) => const PlayerSettingsPage(),
-              routes: [
-                GoRoute(
-                  path: 'equalizer',
-                  builder: (context, state) => const EqualizerPage(),
-                )
-              ]),
           GoRoute(
             path: 'services/ytmusic',
             builder: (context, state) => const YTMusicPage(),

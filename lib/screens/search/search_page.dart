@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:River/core/utils/service_locator.dart';
@@ -11,33 +10,27 @@ import 'package:River/screens/search/cubit/search_cubit.dart';
 import 'package:River/utils/internet_guard.dart';
 import 'package:loading_indicator_m3e/loading_indicator_m3e.dart';
 
-import '../../../generated/l10n.dart';
-import '../../../services/media_player.dart';
-import '../../../utils/adaptive_widgets/adaptive_widgets.dart';
-import '../../../utils/bottom_modals.dart';
-
+import '../../services/media_player.dart';
+import '../../utils/adaptive_widgets/adaptive_widgets.dart';
+import '../../utils/bottom_modals.dart';
+import '../../ytmusic/ytmusic.dart';
 
 class SearchPage extends StatelessWidget {
-  const SearchPage({super.key, this.endpoint, this.isMore = false});
-  final Map<String, dynamic>? endpoint;
-  final bool isMore;
+  const SearchPage({super.key, required this.query});
+  final String query;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => SearchCubit(sl(), endpoint: endpoint),
-      child: _SearchPage(
-        title: endpoint?['query'],
-        isMore: isMore,
-      ),
+      create: (_) => SearchCubit(sl()),
+      child: _SearchPage(query: query),
     );
   }
 }
 
 class _SearchPage extends StatefulWidget {
-  const _SearchPage({this.title, this.isMore = false});
-  final String? title;
-  final bool isMore;
+  final String query;
+  const _SearchPage({required this.query});
 
   @override
   State<_SearchPage> createState() => _SearchPageState();
@@ -45,15 +38,47 @@ class _SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<_SearchPage> {
   late ScrollController _scrollController;
-  TextEditingController? _textEditingController;
-  FocusNode? _focusNode;
+  bool _autoSearched = false;
+  List<Map<String, dynamic>> _suggestions = [];
+  bool _suggestionsLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
-    _focusNode?.requestFocus();
+    _fetchSuggestions();
+  }
+
+  Future<void> _fetchSuggestions() async {
+    try {
+      final suggestions = await GetIt.I<YTMusic>().getSearchSuggestions(widget.query);
+      if (mounted) {
+        setState(() {
+          _suggestions = suggestions;
+          _suggestionsLoaded = true;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _suggestionsLoaded = true);
+      }
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_autoSearched) {
+      _autoSearched = true;
+      context.read<SearchCubit>().search(widget.query);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _scrollListener() async {
@@ -63,102 +88,18 @@ class _SearchPageState extends State<_SearchPage> {
     }
   }
 
-  Future<void> onSubmit(String query) async {
-    if (query.trim() == '') return;
-    _focusNode?.unfocus();
-    await context.read<SearchCubit>().search(query);
-  }
-
   @override
   Widget build(BuildContext context) {
     return InternetGuard(
-      onInternetLost: () {
-        _focusNode?.unfocus();
-      },
       onInternetRestored: () {
-        if (widget.title != null) {
-          context.read<SearchCubit>().search('');
-        } else {
-          _focusNode?.requestFocus();
-        }
+        context.read<SearchCubit>().search(widget.query);
       },
       child: Scaffold(
         appBar: PreferredSize(
           preferredSize: const AdaptiveAppBar().preferredSize,
           child: LayoutBuilder(builder: (context, constraints) {
             return AdaptiveAppBar(
-              title: widget.title != null
-                  ? Text(widget.title!)
-                  : Material(
-                      color: Colors.transparent,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 350),
-                                child: TypeAheadField(
-                                  suggestionsCallback: (query) => context
-                                      .read<SearchCubit>()
-                                      .getSuggestions(query),
-                                  builder: (context, controller, focusNode) {
-                                    _textEditingController = controller;
-                                    _focusNode = focusNode;
-                                    return AdaptiveTextField(
-                                      focusNode: _focusNode,
-                                      controller: _textEditingController,
-                                      onSubmitted: onSubmit,
-                                      keyboardType: TextInputType.text,
-                                      maxLines: 1,
-                                      autofocus: true,
-                                      textInputAction: TextInputAction.search,
-                                      fillColor:
-                                          Colors.grey.withValues(alpha: 0.3),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              vertical: 12, horizontal: 16),
-                                      borderRadius:
-                                          BorderRadius.circular(35),
-                                      hintText: S.of(context).Search_River,
-                                      prefix: constraints.maxWidth > 400
-                                          ? null
-                                          : const AdaptiveBackButton(),
-                                      suffix: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _textEditingController?.text = '';
-                                          });
-                                        },
-                                        child: const Icon(CupertinoIcons.clear),
-                                      ),
-                                    );
-                                  },
-                                  decorationBuilder: null,
-                                  itemBuilder: (context, value) {
-                                    if (value['type'] == 'TEXT') {
-                                      return AdaptiveListTile(
-                                          leading: value['isHistory'] != null
-                                              ? const Icon(Icons.history)
-                                              : null,
-                                          title: Text(value['query']),
-                                          onTap: () {
-                                            setState(() {
-                                              _textEditingController?.text =
-                                                  value['query'];
-                                            });
-                                            onSubmit(value['query']);
-                                          });
-                                    }
-                                    return _SearchListTile(item: value);
-                                  },
-                                  onSelected: (value) => (),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+              title: Text(widget.query),
               automaticallyImplyLeading:
                   (constraints.maxWidth <= 400) ? false : true,
             );
@@ -168,42 +109,53 @@ class _SearchPageState extends State<_SearchPage> {
           builder: (context, state) {
             switch (state) {
               case SearchLoading():
-                return const SizedBox();
+                return _suggestionsLoaded && _suggestions.isEmpty
+                    ? const Center(child: SizedBox())
+                    : _buildResults(state);
               case SearchError():
-                return Center(
-                  child: Text(state.message ?? ''),
-                );
+                return _suggestionsLoaded && _suggestions.isEmpty
+                    ? Center(child: Text(state.message ?? ''))
+                    : _buildResults(state);
               case SearchSuccess():
-                return SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Center(
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 1000),
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        children: [
-                          ...state.sections.map((section) {
-                            if (Platform.isWindows) {
-                              return Center(
-                                child: Adaptivecard(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: _SearchSectionItem(
-                                      section: section, isMore: widget.isMore),
-                                ),
-                              );
-                            }
-                            return _SearchSectionItem(
-                                section: section, isMore: widget.isMore);
-                          }),
-                          if (state.loadingMore)
-                            const Center(child: ExpressiveLoadingIndicator())
-                        ],
-                      ),
-                    ),
-                  ),
-                );
+                return _buildResults(state);
             }
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResults(SearchState state) {
+    final typedSuggestions = _suggestions.where((s) => s['type'] != 'TEXT').toList();
+    final hasSections = state is SearchSuccess && state.sections.isNotEmpty;
+
+    Widget body = Column(
+      children: [
+        if (typedSuggestions.isNotEmpty)
+          ...typedSuggestions.map((item) => _SearchListTile(item: item)),
+        if (state is SearchSuccess)
+          ...state.sections.map((section) => _SearchSectionItem(section: section)),
+        if (state is SearchSuccess && state.loadingMore)
+          const Center(child: ExpressiveLoadingIndicator())
+      ],
+    );
+
+    if (Platform.isWindows && (typedSuggestions.isNotEmpty || hasSections)) {
+      body = Center(
+        child: Adaptivecard(
+          borderRadius: BorderRadius.circular(8),
+          child: body,
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      controller: _scrollController,
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1000),
+          padding: const EdgeInsets.all(8),
+          child: body,
         ),
       ),
     );
@@ -211,15 +163,14 @@ class _SearchPageState extends State<_SearchPage> {
 }
 
 class _SearchSectionItem extends StatelessWidget {
-  const _SearchSectionItem({required this.section, this.isMore = false});
+  const _SearchSectionItem({required this.section});
   final Map<String, dynamic> section;
-  final bool isMore;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (section['title'] != null && !isMore)
+        if (section['title'] != null)
           AdaptiveListTile(
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
@@ -227,27 +178,8 @@ class _SearchSectionItem extends StatelessWidget {
               section['title'],
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            trailing: section['trailing']?['text'] != null
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 0),
-                    child: AdaptiveOutlinedButton(
-                        onPressed: () {
-                          context.push(
-                            '/search',
-                            extra: {
-                              'endpoint': section['trailing']['endpoint'],
-                              'isMore': true,
-                            },
-                          );
-                        },
-                        child: Text(
-                          section['trailing']['text'],
-                          style: const TextStyle(fontSize: 12),
-                        )),
-                  )
-                : null,
           ),
-        ...section['contents'].map((item) {
+        ...(section['contents'] as List? ?? []).map((item) {
           return _SearchListTile(item: item);
         })
       ],
@@ -256,10 +188,9 @@ class _SearchSectionItem extends StatelessWidget {
 }
 
 class _SearchListTile extends StatelessWidget {
-  const _SearchListTile({
-    required this.item,
-  });
+  const _SearchListTile({required this.item});
   final Map item;
+
   @override
   Widget build(BuildContext context) {
     return AdaptiveListTile(
@@ -276,9 +207,7 @@ class _SearchListTile extends StatelessWidget {
         } else if (item['endpoint'] != null && item['videoId'] == null) {
           context.push(
             '/browse',
-            extra: {
-              'endpoint': item['endpoint'],
-            },
+            extra: {'endpoint': item['endpoint']},
           );
         }
       },
